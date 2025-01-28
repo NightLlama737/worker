@@ -1,5 +1,4 @@
 "use client"
-import React, { useState } from 'react'
 
 const SettingPasswordPopUp = ({setSettingPasswordPopUpVisible, setSignUpVisible} : { setSettingPasswordPopUpVisible : React.Dispatch<React.SetStateAction<boolean>>, setSignUpVisible: React.Dispatch<React.SetStateAction<boolean>>}) => {
 
