@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from 'react'
 import SettingPasswordPopUp from './SetingPassword'
-import createUser from '@/database/createUser'
 
 const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.SetStateAction<boolean>>}) => {
   const [isSettingPasswordPopUpVisible, setSettingPasswordPopUpVisible] = useState(false);
