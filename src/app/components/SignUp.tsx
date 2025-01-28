@@ -34,7 +34,6 @@ const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.S
   };
 
   const saveUser = () => {
-    createUser({firstName,lastName,email,phone,worker_Id})
 
   }
   return (
