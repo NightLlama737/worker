@@ -1,17 +1,47 @@
-"use client"
-import React from 'react'
-const SignUp = ({setPopUpVisible} : { setPopUpVisible : React.Dispatch<React.SetStateAction<boolean>>}) => {
-    
-  return (
-    <div  className=' f z-10 flex-col relative flex justify-between items-center    h-[400px] w-[500px] bg-slate-500 rounded-2xl'>
-            <h1 className='text-2xl' >Log In</h1>
-            <form className=' text-white flex flex-col gap-[30px] mb-[20px]' action="">
-            <input className='rounded-lg w-[200px] bg-slate-700' placeholder=' Worker id'></input>
-              <input className='rounded-lg w-[200px] bg-slate-700' placeholder=' Password'></input>
-            </form>
-            <button className= 'bg-gray-500 w-[60px] mb-[50px] h-[30px] rounded-md border-solid border-slate-500 p-0.5' onClick={()=>setPopUpVisible(false)}>button</button>
-    </div>
-  )
-}
+"use client";
+import React, { useState } from 'react';
 
-export default SignUp
+const SignIn = ({ setSignInVisible }: { setSignInVisible: React.Dispatch<React.SetStateAction<boolean>> }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignIn = async (event: React.FormEvent) => {
+    event?.preventDefault();
+    try {
+      const response = await fetch('/api/signIn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      console.log("Fetch request sent! Waiting for response...");
+  
+      const text = await response.text();
+      console.log("Raw response from server:", text);
+  
+      const data = JSON.parse(text);
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to sign in");
+      }
+  
+      alert("Login successful!");
+    } catch (error) {
+      console.error("Error:", error);
+      alert(error.message);
+    }
+  };
+
+  return (
+    <div className='z-10 flex flex-col justify-between items-center h-[300px] w-[400px] bg-slate-500 rounded-2xl'>
+      <h1 className='text-2xl'>Sign In</h1>
+      <form onSubmit={handleSignIn} className='text-white flex flex-col gap-[20px]'>
+        <input className='rounded-lg w-[250px] bg-slate-700' placeholder='Email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className='rounded-lg w-[250px] bg-slate-700' placeholder='Password' type='password' value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button  className='bg-gray-500 w-[100px] h-[40px] rounded-md border-solid border-slate-500'>Sign In</button>
+      </form>
+    </div>
+  );
+};
+
+export default SignIn;

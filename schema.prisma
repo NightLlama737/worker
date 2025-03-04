@@ -1,28 +1,22 @@
-
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url = env("DATABASE_URL")
 }
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  bio String?
-  title String?
-  }
+
+
+
 
   model registeredUsers {
   id    Int     @id @default(autoincrement())
   email String  @unique
-  firstName  String?
-  lastName String?
-  worker_Id String?
-  phone String?
+  first_name String 
+  last_name String
+  phone String @unique
+  hash String 
   }
 
 

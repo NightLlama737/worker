@@ -1,64 +1,57 @@
 "use client"
 import React, { useState } from 'react'
-import SettingPasswordPopUp from './SetingPassword'
 
 const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.SetStateAction<boolean>>}) => {
-  const [isSettingPasswordPopUpVisible, setSettingPasswordPopUpVisible] = useState(false);
   const [firstName,setFirstNameValue] = useState("");
   const [lastName,setLastNameValue] = useState("");
   const [email,setEmailValue] = useState("");
   const [phone,setPhoneValue] = useState("");
-  const [worker_Id,setWorkerIdValue] = useState("");
+  const [password,setPasswordValue] = useState("");
 
-  const togglePopUpSignUp = () => {
-    setSettingPasswordPopUpVisible(!isSettingPasswordPopUpVisible);
-    
-  }
 
-  const firstNameHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFirstNameValue(event.target.value); 
-  };
+  
+  
 
-  const lastNameHandleleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLastNameValue(event.target.value);
-  };
-  const emailHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmailValue(event.target.value);
-  };
-  const phoneHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPhoneValue(event.target.value); 
-  };
-  const workerIdHandleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setWorkerIdValue(event.target.value); 
-  };
+  const saveUser = async (event: React.FormEvent) => {
+    event.preventDefault(); 
 
-  const saveUser = () => {
+    try {
+      const response = await fetch('/api/register', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phone,
+          password,
+        }),
+      });
 
-  }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to register user');
+
+      alert('User registered successfully!');
+      setSignUpVisible(false);
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.message);
+    }
+  };
   return (
-    <div  className=' f z-10 flex-col relative flex justify-between items-center    h-[400px] w-[500px] bg-slate-500 rounded-2xl'>
-            
-            {isSettingPasswordPopUpVisible ? 
-            <>
-            <SettingPasswordPopUp setSettingPasswordPopUpVisible={setSettingPasswordPopUpVisible} setSignUpVisible={setSignUpVisible}/>
-            </>
-            :
-            <>
-            <h1 className='text-2xl' >Registration</h1>
-            <form className=' text-white flex flex-col gap-[30px] mb-[20px]' action="">
-              <input id='FirstName' className='rounded-lg w-[200px] bg-slate-700' placeholder=' First name' type='text' value={firstName} onChange={firstNameHandleChange}></input>
-              <input id='LastName' className='rounded-lg w-[200px] bg-slate-700' placeholder=' Last name' type='text' value={lastName} onChange={lastNameHandleleChange}></input>
-              <input id='Email' className='rounded-lg w-[200px] bg-slate-700' placeholder=' Email' type='text' value={email} onChange={emailHandleChange}></input>
-              <input id='Phone' className='rounded-lg w-[200px] bg-slate-700' placeholder=' Phone' type='text' value={phone} onChange={phoneHandleChange}></input>
-              <input id='WorkerId' className='rounded-lg w-[200px] bg-slate-700' placeholder=' Worker id' type='text' value={worker_Id} onChange={workerIdHandleChange}></input>
-            </form>
-            <button className= 'bg-gray-500 w-[60px] mb-[50px] h-[30px] rounded-md border-solid border-slate-500 p-0.5' onClick={()=>{togglePopUpSignUp(); saveUser()}}>button</button>
-
-            </> }
-
-            
+    <div className='z-10 flex flex-col justify-between items-center h-[400px] w-[500px] bg-slate-500 rounded-2xl'>
+      <h1 className='text-2xl'>Registration</h1>
+      <form onSubmit={saveUser} className='text-white flex flex-col gap-[20px] mb-[20px]'>
+        <input className='rounded-lg w-[200px] bg-slate-700' placeholder='First name' type='text' value={firstName} onChange={(e) => setFirstNameValue(e.target.value)} />
+        <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Last name' type='text' value={lastName} onChange={(e) => setLastNameValue(e.target.value)} />
+        <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Email' type='text' value={email} onChange={(e) => setEmailValue(e.target.value)} />
+        <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Phone' type='text' value={phone} onChange={(e) => setPhoneValue(e.target.value)} />
+        <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Password' type='password' value={password} onChange={(e) => setPasswordValue(e.target.value)} />
+        <button type="submit" className='bg-gray-500 w-[100px] h-[40px] rounded-md border-solid border-slate-500'>Register</button>
+      </form>
     </div>
-  )
+  );
 }
 
 export default SignUp
