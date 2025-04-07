@@ -7,7 +7,7 @@ COPY package*.json ./
 COPY .npmrc ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install
 
 # Copy project files
 COPY . .
