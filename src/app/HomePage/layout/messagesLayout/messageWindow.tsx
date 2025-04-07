@@ -31,19 +31,60 @@ export default function MessageWindow({ user }: MessageWindowProps) {
 
   const connectWebSocket = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-        return;
+      return;
     }
 
     const wsUrl = process.env.NODE_ENV === 'production'
-        ? `wss://${process.env.NEXT_PUBLIC_WS_URL}`
-        : 'ws://localhost:8080';
+      ? `wss://${process.env.NEXT_PUBLIC_WS_URL}`
+      : 'ws://localhost:8080';
 
     try {
-        const websocket = new WebSocket(wsUrl);
-        wsRef.current = websocket;
-        // ... rest of the code
+      const websocket = new WebSocket(wsUrl);
+      wsRef.current = websocket;
+
+      websocket.onopen = () => {
+        console.log('WebSocket connected');
+        setIsConnected(true);
+        setError(null);
+      };
+
+      websocket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.error) {
+            console.error('WebSocket error:', data.error);
+            setError(data.error);
+          } else {
+            console.log('Received message:', data);
+            setMessages(prev => [...prev, data]);
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
+      };
+
+      websocket.onerror = (event) => {
+        console.error('WebSocket error:', event);
+        setIsConnected(false);
+        setError('WebSocket connection error');
+      };
+
+      websocket.onclose = () => {
+        console.log('WebSocket disconnected');
+        setIsConnected(false);
+        wsRef.current = null;
+
+        // Attempt to reconnect after 3 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting to reconnect...');
+          connectWebSocket();
+        }, 3000);
+      };
+
     } catch (error) {
-        console.error('Failed to connect:', error);
+      console.error('Failed to connect:', error);
+      setError('Failed to connect to WebSocket');
+      setIsConnected(false);
     }
   }, []);
 
@@ -84,6 +125,10 @@ export default function MessageWindow({ user }: MessageWindowProps) {
   const addMessage = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    if (!newMessage.trim()) {
+      return;
+    }
+
     const cookies = nookies.get(null);
     const currentUser = cookies.user ? JSON.parse(cookies.user) : null;
     const senderEmail = currentUser ? currentUser.user.email : null;
@@ -96,7 +141,7 @@ export default function MessageWindow({ user }: MessageWindowProps) {
     try {
       const messageData: Message = {
         email: user.email,
-        message: newMessage,
+        message: newMessage.trim(),
         user: senderEmail,
         date: new Date().toISOString(),
       };
@@ -105,10 +150,8 @@ export default function MessageWindow({ user }: MessageWindowProps) {
         throw new Error("WebSocket connection is not open");
       }
 
-      // Send message through WebSocket
+      console.log('Sending message:', messageData);
       wsRef.current.send(JSON.stringify(messageData));
-      
-      // Clear input after sending
       setNewMessage("");
     } catch (error) {
       console.error('Error sending message:', error);
@@ -123,7 +166,6 @@ export default function MessageWindow({ user }: MessageWindowProps) {
     <div className="flex flex-col items-start h-[80vh] w-[40vw] bg-slate-500 rounded-2xl p-[20px]">
       <h1 className="text-white">
         Messages with {user.first_name} {user.last_name}
-        {!isConnected && <span className="text-red-500 ml-2">(Disconnected)</span>}
       </h1>
       <div className=" overflow-y-auto h-[500px] flex flex-col w-full mt-4">
         {messages.map((message, index) => (

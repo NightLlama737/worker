@@ -6,8 +6,8 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   try {
     const messageData = await request.json();
-    console.log('Received message data:', messageData);
-    
+    console.log('Received message in API:', messageData);
+
     const savedMessage = await prisma.messages.create({
       data: {
         email: messageData.email,
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       }
     });
 
-    console.log('Message saved successfully:', savedMessage);
+    console.log('Message saved to database:', savedMessage);
     return NextResponse.json(savedMessage);
   } catch (error) {
     console.error("Error saving message:", error);
