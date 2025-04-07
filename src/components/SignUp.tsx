@@ -2,11 +2,11 @@
 import React, { useState } from 'react'
 
 const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.SetStateAction<boolean>>}) => {
-  const [firstName,setFirstNameValue] = useState("");
-  const [lastName,setLastNameValue] = useState("");
-  const [email,setEmailValue] = useState("");
-  const [phone,setPhoneValue] = useState("");
-  const [password,setPasswordValue] = useState("");
+  const [firstName,setFirstNameValue] = useState<string>('');
+  const [lastName,setLastNameValue] = useState('');
+  const [email,setEmailValue] = useState('');
+  const [phone,setPhoneValue] = useState('');
+  const [password,setPasswordValue] = useState('');
 
 
   
@@ -31,7 +31,7 @@ const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.S
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to register user');
 
-      alert('User registered successfully!');
+      alert(data.message);
       setSignUpVisible(false);
 
     } catch (error) {
@@ -48,7 +48,7 @@ const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.S
         <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Email' type='text' value={email} onChange={(e) => setEmailValue(e.target.value)} />
         <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Phone' type='text' value={phone} onChange={(e) => setPhoneValue(e.target.value)} />
         <input className='rounded-lg w-[200px] bg-slate-700' placeholder='Password' type='password' value={password} onChange={(e) => setPasswordValue(e.target.value)} />
-        <button type="submit" className='bg-gray-500 w-[100px] h-[40px] rounded-md border-solid border-slate-500'>Register</button>
+        <button type="submit" className='bg-gray-500 ml-auto mr-auto w-[100px] h-[40px] rounded-md border-solid border-slate-500'>Register</button>
       </form>
     </div>
   );

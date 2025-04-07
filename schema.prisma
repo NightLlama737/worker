@@ -19,4 +19,12 @@ datasource db {
   hash String 
   }
 
+  model messages {
+      id Int @id @default(autoincrement())
+      email String 
+      message String
+      user String
+      date DateTime @default(now())
+    }
+
 

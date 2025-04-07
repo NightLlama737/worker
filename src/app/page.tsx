@@ -1,4 +1,4 @@
-import MainPage from "./StartPage/StartPage";
+import MainPage from "../StartPage/StartPage";
 
 export default function Home() {
   return (
