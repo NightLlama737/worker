@@ -1,14 +1,18 @@
 "use client";
-import React, { useState } from "react";
-import Home from "./layout/Home";
-import HeaderHomePage from "./HeaderHomePage";
-import SideBar from "./SideBar";
-import Profile from "./layout/Profile";
-import Messages from "./layout/Messages";
-import Settings from "./layout/Settings";
+import { useState } from 'react';
+import HeaderHomePage from './HeaderHomePage';
+import SideBar from './SideBar';
+import Home from './layout/Home';
+import Profile from './layout/Profile';
+import Messages from './layout/Messages';
+import Settings from './layout/Settings';
+
+// Import the Page type or define it here
+type Page = 'Home' | 'Profile' | 'Messages' | 'Settings';
 
 export default function Layout() {
-  const [selectedPage, setSelectedPage] = useState('Home');
+  // Specify the state type as Page
+  const [selectedPage, setSelectedPage] = useState<Page>('Home');
 
   const renderSelectedPage = () => {
     switch (selectedPage) {
@@ -30,10 +34,7 @@ export default function Layout() {
       <HeaderHomePage />
       <div className="flex justify-between">
         <SideBar selectedPage={selectedPage} setSelectedPage={setSelectedPage} />
-        
         {renderSelectedPage()}
-          
-        
       </div>
     </>
   );
