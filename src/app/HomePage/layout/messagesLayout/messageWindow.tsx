@@ -31,61 +31,19 @@ export default function MessageWindow({ user }: MessageWindowProps) {
 
   const connectWebSocket = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      return;
+        return;
     }
 
+    const wsUrl = process.env.NODE_ENV === 'production'
+        ? `wss://${process.env.NEXT_PUBLIC_WS_URL}`
+        : 'ws://localhost:8080';
+
     try {
-      const websocket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || 'wss://your-websocket-domain.com');
-      wsRef.current = websocket;
-      
-      websocket.onopen = () => {
-        console.log('WebSocket connection established');
-        setIsConnected(true);
-        setError(null);
-      };
-
-      websocket.onmessage = (event: MessageEvent) => {
-        try {
-          const newMessage = JSON.parse(event.data) as Message;
-          setMessages((prevMessages) => {
-            // Check if message already exists to prevent duplicates
-            const messageExists = prevMessages.some(
-              msg => msg.date === newMessage.date && msg.message === newMessage.message
-            );
-            if (messageExists) return prevMessages;
-            return [...prevMessages, newMessage];
-          });
-        } catch (error) {
-          console.error('Error parsing message:', error);
-          setError('Failed to parse message');
-        }
-      };
-
-      websocket.onerror = (event: Event) => {
-        console.error('WebSocket error:', event);
-        setError('WebSocket connection error');
-        setIsConnected(false);
-      };
-
-      websocket.onclose = () => {
-        console.log('WebSocket connection closed');
-        setIsConnected(false);
-        wsRef.current = null;
-
-        // Attempt to reconnect after 3 seconds
-        reconnectTimeoutRef.current = setTimeout(() => {
-          console.log('Attempting to reconnect...');
-          connectWebSocket();
-        }, 3000);
-      };
-
+        const websocket = new WebSocket(wsUrl);
+        wsRef.current = websocket;
+        // ... rest of the code
     } catch (error) {
-      console.error('Failed to create WebSocket connection:', error);
-      setError('Failed to create WebSocket connection');
-      setIsConnected(false);
-      
-      // Attempt to reconnect after 3 seconds
-      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 3000);
+        console.error('Failed to connect:', error);
     }
   }, []);
 

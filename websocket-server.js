@@ -1,19 +1,20 @@
+require('dotenv').config();
 const WebSocket = require('ws');
 const fetch = require('node-fetch');
-const https = require('https');
-const fs = require('fs');
+const http = require('http');
 
-// In production, you'll need SSL certificates
-const server = process.env.NODE_ENV === 'production' 
-  ? https.createServer({
-      cert: fs.readFileSync('/path/to/cert.pem'),
-      key: fs.readFileSync('/path/to/key.pem')
-    })
-  : null;
+// Create HTTP server for WebSocket
+const server = http.createServer();
+const PORT = process.env.PORT || 8080;
 
-const wss = process.env.NODE_ENV === 'production'
-  ? new WebSocket.Server({ server })
-  : new WebSocket.Server({ port: 8080 });
+// Initialize WebSocket server with the HTTP server
+const wss = new WebSocket.Server({ 
+    server,
+    perMessageDeflate: false // Disable per-message deflate to prevent memory leaks
+});
+
+// Get the Vercel URL from environment variables
+const VERCEL_URL = process.env.VERCEL_URL || 'localhost:3000';
 
 wss.on('connection', (ws, req) => {
     console.log('Client connected from:', req.socket.remoteAddress);
@@ -24,7 +25,7 @@ wss.on('connection', (ws, req) => {
             console.log('Received message:', messageData);
             
             const API_URL = process.env.NODE_ENV === 'production'
-                ? 'https://your-vercel-app.vercel.app'
+                ? `https://${VERCEL_URL}`
                 : 'http://localhost:3000';
 
             const response = await fetch(`${API_URL}/api/addMessage`, {
@@ -36,8 +37,7 @@ wss.on('connection', (ws, req) => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Failed to save message: ${errorData.error || response.statusText}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const savedMessage = await response.json();
@@ -53,13 +53,12 @@ wss.on('connection', (ws, req) => {
             ws.send(JSON.stringify({ error: error.message }));
         }
     });
+
+    ws.on('close', () => {
+        console.log('Client disconnected');
+    });
 });
 
-if (process.env.NODE_ENV === 'production') {
-    const PORT = process.env.PORT || 8080;
-    server.listen(PORT, () => {
-        console.log(`WebSocket server is running on port ${PORT}`);
-    });
-} else {
-    console.log('WebSocket server is running on ws://localhost:8080');
-}
+server.listen(PORT, () => {
+    console.log(`WebSocket server is running on port ${PORT}`);
+});

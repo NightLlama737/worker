@@ -1,0 +1,11 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheck_path = "/"
+healthcheck_timeout_seconds = 100
+restartPolicyType = "always"
+
+[service]
+internal_port = "8080"
