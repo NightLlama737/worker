@@ -8,10 +8,6 @@ const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.S
   const [phone,setPhoneValue] = useState('');
   const [password,setPasswordValue] = useState('');
 
-
-  
-  
-
   const saveUser = async (event: React.FormEvent) => {
     event.preventDefault(); 
 
@@ -34,11 +30,13 @@ const SignUp = ({setSignUpVisible} : { setSignUpVisible : React.Dispatch<React.S
       alert(data.message);
       setSignUpVisible(false);
 
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message);
+    } catch (err: unknown) {
+      console.error('Error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      alert(errorMessage);
     }
   };
+
   return (
     <div className='z-10 flex flex-col justify-between items-center h-[400px] w-[500px] bg-slate-500 rounded-2xl'>
       <h1 className='text-2xl'>Registration</h1>

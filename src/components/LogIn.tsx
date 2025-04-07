@@ -40,7 +40,11 @@ const SignIn = ({ setSignInVisible }: { setSignInVisible: React.Dispatch<React.S
       
     } catch (error) {
       console.error("Error:", error);
-      alert(error.message);
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("An unknown error occurred");
+      }
     }
   };
 
