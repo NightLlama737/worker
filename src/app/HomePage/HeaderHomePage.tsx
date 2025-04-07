@@ -14,7 +14,7 @@ const HeaderHomePage = () => {
   }, []);
 
   return (
-    <header className='flex items-center fixed left-0 top-0 bg-black w-screen h-[40px]'>
+    <header className=' shadow-md shadow-black flex items-center fixed left-0 top-0 bg-black w-screen h-[40px]'>
       <div className='ml-4 text-white'>{usersName}</div>
       <h1 className='text-xl ml-auto mr-auto'>𝓦𝓸𝓻𝓴𝓮𝓻</h1>
     </header>

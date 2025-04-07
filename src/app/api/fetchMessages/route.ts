@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) { 
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const userCookie = cookieStore.get('user');

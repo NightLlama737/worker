@@ -25,7 +25,7 @@ const Header = () => {
   }
   return (
     <>
-    <header className='  flex items-center fixed left-0 top-0 bg-black w-screen h-[40px]'>
+    <header className=' shadow-md shadow-black flex items-center fixed left-0 top-0 bg-black w-screen h-[40px]'>
       <button className=' fixed ml-[1%] z-0 bg-slate-500 w-[100px] rounded-md border-solid border-white p-0.5' onClick={togglePopUpSignUp}>Sign in</button>
       <button className=' fixed  ml-[8%] z-0 bg-slate-500 w-[100px] rounded-md border-solid border-white p-0.5' onClick={togglePopUpLogIn}>Log in</button>
     

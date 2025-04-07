@@ -11,7 +11,7 @@ export default function Messages() {
   };
 
   return (
-    <div className='flex items-center justify-between h-[93vh] w-[70vw] mr-[8%] mt-[30px] p-[5%] rounded-[10px] bg-black'>
+    <div className=' shadow-lg shadow-black flex items-center justify-between h-[93vh] w-[70vw] mr-[8%] mt-[30px] p-[5%] rounded-[10px] bg-black'>
       <UsersWindow onSelectUser={handleSelectUser} />
       {selectedUser && <MessageWindow user={selectedUser} />}
     </div>

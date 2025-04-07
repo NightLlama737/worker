@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import nookies from 'nookies';
 
 interface User {
@@ -25,21 +25,79 @@ export default function MessageWindow({ user }: MessageWindowProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState<string>("");
+  const [isConnected, setIsConnected] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const connectWebSocket = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      return;
+    }
+
+    try {
+      const websocket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || 'wss://your-websocket-domain.com');
+      wsRef.current = websocket;
+      
+      websocket.onopen = () => {
+        console.log('WebSocket connection established');
+        setIsConnected(true);
+        setError(null);
+      };
+
+      websocket.onmessage = (event: MessageEvent) => {
+        try {
+          const newMessage = JSON.parse(event.data) as Message;
+          setMessages((prevMessages) => {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prevMessages.some(
+              msg => msg.date === newMessage.date && msg.message === newMessage.message
+            );
+            if (messageExists) return prevMessages;
+            return [...prevMessages, newMessage];
+          });
+        } catch (error) {
+          console.error('Error parsing message:', error);
+          setError('Failed to parse message');
+        }
+      };
+
+      websocket.onerror = (event: Event) => {
+        console.error('WebSocket error:', event);
+        setError('WebSocket connection error');
+        setIsConnected(false);
+      };
+
+      websocket.onclose = () => {
+        console.log('WebSocket connection closed');
+        setIsConnected(false);
+        wsRef.current = null;
+
+        // Attempt to reconnect after 3 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('Attempting to reconnect...');
+          connectWebSocket();
+        }, 3000);
+      };
+
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+      setError('Failed to create WebSocket connection');
+      setIsConnected(false);
+      
+      // Attempt to reconnect after 3 seconds
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 3000);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const cookies = nookies.get(null);
-        const currentUser = cookies.user ? JSON.parse(cookies.user) : null;
-
-        if (currentUser) {
-          const response = await fetch(`/api/fetchMessages?recipientEmail=${user.email}`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch messages");
-          }
-          const data: Message[] = await response.json();
-          setMessages(data);
+        const response = await fetch(`/api/fetchMessages?recipientEmail=${user.email}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        setMessages(data);
       } catch (error) {
         console.error("Error fetching messages:", error);
         setError("Failed to fetch messages");
@@ -49,31 +107,17 @@ export default function MessageWindow({ user }: MessageWindowProps) {
     };
 
     fetchMessages();
-
-    // Establish WebSocket connection
-    const ws = new WebSocket('ws://localhost:3000/api/socket');
-
-    ws.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    ws.onmessage = (event) => {
-      const newMessage = JSON.parse(event.data);
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
+    connectWebSocket();
 
     return () => {
-      ws.close();
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
-  }, [user]);
+  }, [user, connectWebSocket]);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(event.target.value);
@@ -93,23 +137,24 @@ export default function MessageWindow({ user }: MessageWindowProps) {
 
     try {
       const messageData: Message = {
-        email: user.email, // Recipient
+        email: user.email,
         message: newMessage,
-        user: senderEmail, // Sender (ensure this matches the `user` property in `Message` type)
+        user: senderEmail,
         date: new Date().toISOString(),
       };
 
-      // Send the message via WebSocket
-      const ws = new WebSocket('ws://localhost:3000/api/socket');
-      ws.onopen = () => {
-        ws.send(JSON.stringify(messageData));
-      };
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        throw new Error("WebSocket connection is not open");
+      }
 
-      setMessages((prevMessages) => [...prevMessages, messageData]); // Ensure `messageData` matches `Message` type
-      setNewMessage(""); // Clear input after sending
+      // Send message through WebSocket
+      wsRef.current.send(JSON.stringify(messageData));
+      
+      // Clear input after sending
+      setNewMessage("");
     } catch (error) {
-      console.log('Error adding message:', error);
-      alert((error as Error).message);
+      console.error('Error sending message:', error);
+      alert("Failed to send message. Please try again.");
     }
   };
 
@@ -118,8 +163,11 @@ export default function MessageWindow({ user }: MessageWindowProps) {
 
   return (
     <div className="flex flex-col items-start h-[80vh] w-[40vw] bg-slate-500 rounded-2xl p-[20px]">
-      <h1 className="text-white">Messages with {user.first_name} {user.last_name}</h1>
-      <div className="flex flex-col w-full mt-4">
+      <h1 className="text-white">
+        Messages with {user.first_name} {user.last_name}
+        {!isConnected && <span className="text-red-500 ml-2">(Disconnected)</span>}
+      </h1>
+      <div className=" overflow-y-auto h-[500px] flex flex-col w-full mt-4">
         {messages.map((message, index) => (
           <div key={index} className="bg-slate-700 rounded p-2 mb-2 text-white">
             <p>{message.message}</p>
